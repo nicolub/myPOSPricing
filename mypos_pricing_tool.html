@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>myPOS — Outil Tarifaire France</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --blue: #1870f0;
+    --blue-light: #e8f0fe;
+    --blue-mid: #4d94ff;
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f0f3fa;
+    --border: #e2e8f4;
+    --border2: #c8d5ed;
+    --text: #0f1f3d;
+    --text2: #4a5a78;
+    --text3: #8a97b0;
+    --success: #0a7c4a;
+    --success-bg: #e6f7ef;
+    --success-border: #b3e8cf;
+    --warning: #8a5800;
+    --warning-bg: #fff8e6;
+    --warning-border: #f5d580;
+    --danger: #c0140c;
+    --danger-bg: #fff0ef;
+    --danger-border: #f5b3b0;
+    --info: #1254b0;
+    --info-bg: #e8f0fe;
+    --info-border: #b3cdf5;
+    --orange: #7a4f00;
+    --orange-bg: #fff3cd;
+    --orange-border: #f0a500;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(15,31,61,0.08), 0 4px 16px rgba(15,31,61,0.06);
+    --shadow-lg: 0 4px 24px rgba(15,31,61,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--blue);
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(24,112,240,0.3);
+  }
+  .topbar-logo {
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; color: #fff; font-size: 13px; letter-spacing: -0.5px;
+  }
+  .topbar-title { color: #fff; font-weight: 600; font-size: 15px; }
+  .topbar-badge {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-header-icon {
+    width: 22px; height: 22px;
+    background: var(--blue);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff;
+  }
+  .card-title { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
+  .card-body { padding: 20px; }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+  .req { color: var(--danger); margin-left: 2px; }
+  .field input, .field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5a78' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(24,112,240,0.12);
+  }
+  .calc-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 11px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.01em;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .calc-btn:hover { opacity: 0.9; }
+  .calc-btn:active { transform: scale(0.99); }
+
+  /* ── ALERTS ── */
+  .alert {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin-bottom: 10px;
+    border: 1px solid;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .alert-success  { background: var(--success-bg);  color: var(--success);  border-color: var(--success-border); }
+  .alert-info     { background: var(--info-bg);     color: var(--info);     border-color: var(--info-border); }
+  .alert-warning  { background: var(--warning-bg);  color: var(--warning);  border-color: var(--warning-border); }
+  .alert-danger   { background: var(--danger-bg);   color: var(--danger);   border-color: var(--danger-border); }
+
+  /* ── METRICS ── */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .metric {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .metric.warn-orange { background: var(--orange-bg); border-color: var(--orange-border); }
+  .metric.warn-orange .mvalue { color: var(--orange) !important; }
+  .metric.warn-orange .mlabel, .metric.warn-orange .msub { color: var(--orange); opacity: 0.8; }
+  .metric .mlabel { font-size: 11px; font-weight: 500; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .metric .mvalue { font-size: 20px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+  .metric .msub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  /* ── TABS ── */
+  .tab-row {
+    display: flex;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    width: fit-content;
+    border: 2px solid var(--blue);
+    margin-bottom: 18px;
+  }
+  .tab-row button {
+    padding: 8px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.01em;
+    transition: background 0s, color 0s;
+  }
+  .tab-row button + button { border-left: 1.5px solid var(--blue); }
+  .tab-content { display: none; }
+  .tab-content.open { display: block; }
+
+  /* ── SELECT WRAP ── */
+  .rate-select-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .rate-select-wrap label { font-size: 12px; font-weight: 500; color: var(--text2); min-width: 140px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rate-select-wrap select {
+    flex: 1; min-width: 200px;
+    padding: 8px 36px 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5a78' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .rate-select-wrap select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,112,240,0.12); }
+
+  /* ── SLIDER ── */
+  .slider-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .slider-wrap label { font-size: 12px; font-weight: 500; color: var(--text2); min-width: 140px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .slider-wrap input[type=range] { flex: 1; height: 4px; accent-color: var(--blue); cursor: pointer; }
+  .slider-wrap .sval { font-size: 14px; font-weight: 600; min-width: 70px; text-align: right; color: var(--blue); font-family: 'DM Mono', monospace; }
+
+  /* ── DURATION BUTTONS ── */
+  .dur-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .dur-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .dur-btn {
+    padding: 5px 16px;
+    border: 1.5px solid var(--border2);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.12s;
+  }
+  .dur-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .dur-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  /* ── COMPARISON TABLE ── */
+  .comp-wrap { overflow-x: auto; }
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 680px; }
+  .comp-table th {
+    text-align: left; padding: 8px 10px;
+    font-weight: 600; font-size: 11px;
+    color: var(--text2);
+    background: var(--surface2);
+    border-bottom: 2px solid var(--border);
+    line-height: 1.4; vertical-align: bottom;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .comp-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table .mypos-row td { color: var(--success); font-weight: 600; background: var(--success-bg); }
+  .comp-input {
+    width: 62px; padding: 4px 6px;
+    border: 1px solid var(--border2);
+    border-radius: 4px; font-size: 12px;
+    text-align: right;
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+  }
+  .comp-input:focus { outline: none; border-color: var(--blue); }
+
+  /* ── PRIME BOX ── */
+  .prime-box {
+    border: 2px solid var(--success-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    background: var(--success-bg);
+  }
+  .prime-title { font-size: 12px; font-weight: 600; color: var(--success); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .prime-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .prime-item {
+    text-align: center; padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--success-border);
+    background: var(--surface);
+  }
+  .prime-item .ppct { font-size: 15px; font-weight: 700; color: var(--success); }
+  .prime-item .pval { font-size: 20px; font-weight: 700; color: var(--text); margin: 4px 0; font-family: 'DM Mono', monospace; }
+  .prime-item .plabel { font-size: 11px; color: var(--text3); }
+
+  /* ── SECTION DIVIDER ── */
+  .section-note { font-size: 11px; color: var(--text3); margin-bottom: 12px; line-height: 1.5; }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .page { padding: 14px 12px 40px; }
+    .prime-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .topbar-title { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">MP</div>
+  <span class="topbar-title">Outil Tarifaire France</span>
+  <span class="topbar-badge">Commercial</span>
+</div>
+
+<div class="page">
+
+  <!-- INFORMATIONS CLIENT -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">①</div>
+      <span class="card-title">Informations client</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>TPV mensuelle estimée (€)<span class="req">*</span></label>
+          <input type="number" id="tpv" placeholder="ex: 15 000" min="0">
+        </div>
+        <div class="field">
+          <label>Terminal<span class="req">*</span></label>
+          <select id="terminal" onchange="onTerminalChange(this.value)">
+            <option value="Ultra" selected>Ultra (179€ HT)</option>
+            <option value="GO2">GO2 (29€ HT)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Saisonnalité<span class="req">*</span></label>
+          <select id="season">
+            <option value="faible" selected>Faible (activité régulière)</option>
+            <option value="forte">Forte (fermeture plusieurs mois/an)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Âge de la société<span class="req">*</span></label>
+          <select id="age">
+            <option value="old" selected>Plus de 12 mois</option>
+            <option value="new">Moins de 12 mois</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Chiffre d'affaires (€)</label>
+          <input type="number" id="ca" placeholder="Facultatif">
+        </div>
+      </div>
+      <div id="go2-warning" class="hidden" style="margin-top:12px"></div>
+      <button class="calc-btn" onclick="calculate()">Calculer la recommandation →</button>
+    </div>
+  </div>
+
+  <!-- RECOMMANDATION -->
+  <div id="result-section" class="hidden">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">②</div>
+        <span class="card-title">Recommandation myPOS</span>
+      </div>
+      <div class="card-body">
+        <div id="reco-summary"></div>
+        <div class="metric-grid" id="metrics"></div>
+      </div>
+    </div>
+
+    <!-- PERSONNALISER -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">③</div>
+        <span class="card-title">Personnaliser l'offre</span>
+      </div>
+      <div class="card-body">
+        <div class="tab-row">
+          <button id="btn-payg" onclick="switchTab('payg')">PAYG</button>
+          <button id="btn-rental" onclick="switchTab('rental')">Location (Rental)</button>
+        </div>
+        <div id="go2-rental-block" class="hidden"></div>
+
+        <div id="tab-payg" class="tab-content open">
+          <div class="rate-select-wrap">
+            <label>Taux appliqué</label>
+            <select id="rate-payg-select" onchange="updateRatePAYG(this.value)"></select>
+          </div>
+          <div id="payg-alerts"></div>
+          <div class="metric-grid" id="payg-metrics"></div>
+        </div>
+
+        <div id="tab-rental" class="tab-content">
+          <div class="rate-select-wrap">
+            <label>Taux appliqué</label>
+            <select id="rate-rental-select" onchange="updateRateRental(this.value)"></select>
+          </div>
+          <div class="slider-wrap">
+            <label>Mensualité location</label>
+            <input type="range" id="rental-fee" step="1" min="14.9" max="34.9" value="19.9" oninput="updateRentalFee(this.value)">
+            <span class="sval" id="rental-fee-display">19,90€</span>
+          </div>
+          <div class="dur-label">Durée d'engagement</div>
+          <div class="dur-btns">
+            <button class="dur-btn active" onclick="setDuration(12,this)">12 mois</button>
+            <button class="dur-btn" onclick="setDuration(24,this)">24 mois</button>
+            <button class="dur-btn" onclick="setDuration(36,this)">36 mois</button>
+            <button class="dur-btn" onclick="setDuration(48,this)">48 mois</button>
+          </div>
+          <div id="rental-alerts"></div>
+          <div class="metric-grid" id="rental-metrics"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCURRENTS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">④</div>
+        <span class="card-title">Comparaison concurrents</span>
+      </div>
+      <div class="card-body">
+        <p class="section-note">Tous les champs sont modifiables. L'achat terminal est lissé sur 12 mois dans le total mensuel. Revolut : frais/transaction calculés sur TPV ÷ 50€ de panier moyen.</p>
+        <div class="comp-wrap">
+          <table class="comp-table">
+            <thead><tr>
+              <th style="width:118px">Prestataire</th>
+              <th style="width:62px">Taux<br>(%)</th>
+              <th style="width:68px">Abonne-<br>ment (€)</th>
+              <th style="width:72px">Terminal<br>/mois (€)</th>
+              <th style="width:72px">Achat<br>terminal (€)</th>
+              <th style="width:90px">Frais trx<br>/mois (€)</th>
+              <th style="width:78px;text-align:right">Total<br>/mois (€)</th>
+              <th style="width:72px;text-align:right">Écart vs<br>myPOS</th>
+            </tr></thead>
+            <tbody id="comp-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIME -->
+    <div id="prime-section" class="card hidden">
+      <div class="card-header">
+        <div class="card-header-icon">⑤</div>
+        <span class="card-title">Prime commerciale estimée</span>
+      </div>
+      <div class="card-body">
+        <div class="prime-box">
+          <div class="prime-title">Valeur du contrat (mensualité × durée) et primes possibles</div>
+          <div class="prime-grid" id="prime-grid"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /result-section -->
+</div><!-- /page -->
+
+<script>
+const BLUE='#1870f0';
+const PAYG_RECOMMENDED_RATE=0.0169;
+
+const PAYG_RATES=[
+  {name:"1,69% — STANDARD",    tpvMin:0,     tpvMax:3000,   rate:0.0169,tariff:"00327YEUR", aD:"Self",            aI:"Self"},
+  {name:"1,49% — SMALL GOLD",  tpvMin:3000,  tpvMax:5000,   rate:0.0149,tariff:"0032GCEUR", aD:"Self",            aI:"TM"},
+  {name:"1,39% — SMALL SILVER",tpvMin:5000,  tpvMax:7000,   rate:0.0139,tariff:"0032GDEUR", aD:"Manager",         aI:"CM / Head of Indirect"},
+  {name:"1,29% — SMALL BRONZE",tpvMin:7000,  tpvMax:10000,  rate:0.0129,tariff:"0032GFEUR", aD:"Manager",         aI:"CM / Head of Indirect"},
+  {name:"1,20% — MID GOLD",    tpvMin:10000, tpvMax:15000,  rate:0.0120,tariff:"0032GHEUR", aD:"Manager",         aI:"CM / Head of Indirect"},
+  {name:"1,10% — MID SILVER",  tpvMin:15000, tpvMax:20000,  rate:0.0110,tariff:"0032GJEUR", aD:"Manager",         aI:"CM / Head of Indirect"},
+  {name:"0,99% — MID BRONZE",  tpvMin:20000, tpvMax:30000,  rate:0.0099,tariff:"0032GLEUR", aD:"Manager",         aI:"CM / Head of Indirect"},
+  {name:"0,89% — Custom",      tpvMin:30000, tpvMax:50000,  rate:0.0089,tariff:"0032GNEUR", aD:"Manager",         aI:"CM / Head of Indirect"},
+  {name:"0,79% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0079,tariff:"0032GOEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,69% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0069,tariff:"0032GPEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,65% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0065,tariff:"0032GQEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,60% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0060,tariff:"0032GVEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,55% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0055,tariff:"0032GWEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,50% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0050,tariff:"0032GXEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,45% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0045,tariff:"0032GYEUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,42% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0042,tariff:"0032H0EUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,40% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0040,tariff:"0032H2EUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,39% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0039,tariff:"0032H4EUR", aD:"Pricing Director",aI:"Pricing Director"},
+  {name:"0,37% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0037,tariff:"0032H6EUR", aD:"Pricing Director",aI:"Pricing Director"},
+  {name:"0,35% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0035,tariff:"0032H8EUR", aD:"Pricing Director",aI:"Pricing Director"},
+];
+
+const RENTAL_RATES=[
+  {name:"1,69% — STANDARD",    tpvMin:4000,  tpvMax:10000,  rate:0.0169,mmsc:20, tariff:"00327YEUR", aD:"Self",            aI:"Self"},
+  {name:"1,49% — SMALL GOLD",  tpvMin:4000,  tpvMax:10000,  rate:0.0149,mmsc:20, tariff:"0032GCEUR", aD:"Self",            aI:"Self"},
+  {name:"1,39% — SMALL SILVER",tpvMin:4000,  tpvMax:10000,  rate:0.0139,mmsc:20, tariff:"0032GDEUR", aD:"Self",            aI:"Self"},
+  {name:"1,29% — SMALL BRONZE",tpvMin:4000,  tpvMax:10000,  rate:0.0129,mmsc:20, tariff:"0032GFEUR", aD:"Self",            aI:"Self"},
+  {name:"1,20% — MID GOLD",    tpvMin:4000,  tpvMax:10000,  rate:0.0120,mmsc:40, tariff:"0032GHEUR", aD:"Self",            aI:"Self"},
+  {name:"1,10% — MID SILVER",  tpvMin:10000, tpvMax:15000,  rate:0.0110,mmsc:40, tariff:"0032GJEUR", aD:"Self",            aI:"Self"},
+  {name:"0,99% — MID BRONZE",  tpvMin:10000, tpvMax:15000,  rate:0.0099,mmsc:50, tariff:"0032GLEUR", aD:"Self",            aI:"Self"},
+  {name:"0,89% — Custom",      tpvMin:15000, tpvMax:20000,  rate:0.0089,mmsc:50, tariff:"0032GNEUR", aD:"Self",            aI:"Self"},
+  {name:"0,79% — Custom",      tpvMin:15000, tpvMax:20000,  rate:0.0079,mmsc:60, tariff:"0032GOEUR", aD:"Self",            aI:"Self"},
+  {name:"0,69% — Custom",      tpvMin:20000, tpvMax:30000,  rate:0.0069,mmsc:60, tariff:"0032GPEUR", aD:"Self",            aI:"Self"},
+  {name:"0,65% — Custom",      tpvMin:20000, tpvMax:30000,  rate:0.0065,mmsc:80, tariff:"0032GQEUR", aD:"Self",            aI:"TM"},
+  {name:"0,60% — Custom",      tpvMin:30000, tpvMax:50000,  rate:0.0060,mmsc:80, tariff:"0032GVEUR", aD:"Self",            aI:"TM"},
+  {name:"0,55% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0055,mmsc:100,tariff:"0032GWEUR", aD:"Manager",         aI:"TM"},
+  {name:"0,50% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0050,mmsc:100,tariff:"0032GXEUR", aD:"Manager",         aI:"TM"},
+  {name:"0,45% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0045,mmsc:100,tariff:"0032GYEUR", aD:"Manager",         aI:"TM"},
+  {name:"0,42% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0042,mmsc:100,tariff:"0032H0EUR", aD:"Manager",         aI:"TM"},
+  {name:"0,40% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0040,mmsc:100,tariff:"0032H2EUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,39% — Custom",      tpvMin:50000, tpvMax:999999, rate:0.0039,mmsc:100,tariff:"0032H4EUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,37% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0037,mmsc:150,tariff:"0032H6EUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+  {name:"0,35% — Custom",      tpvMin:100000,tpvMax:999999, rate:0.0035,mmsc:150,tariff:"0032H8EUR", aD:"Country Manager", aI:"CM / Head of Indirect"},
+];
+
+const TERMINAL_PRICE={Ultra:179,GO2:29};
+
+function paygFloorRate(tpv){
+  const row=PAYG_RATES.find(r=>tpv>=r.tpvMin&&tpv<r.tpvMax);
+  return row?row.rate:PAYG_RATES[PAYG_RATES.length-1].rate;
+}
+function minRentalRate(tpv){return tpv<10000?0.0120:85/tpv;}
+
+function getCompDefaults(t){
+  const u=t==='Ultra';
+  return[
+    {name:"SumUp",        rate:1.75,monthly:0, terminalMonthly:0,  terminalBuy:u?169:34, fixedPerTrx:0},
+    {name:"SumUp Plus",   rate:0.89,monthly:19,terminalMonthly:0,  terminalBuy:u?169:34, fixedPerTrx:0},
+    {name:"Flatpay",      rate:1.29,monthly:0, terminalMonthly:0,  terminalBuy:0,        fixedPerTrx:0},
+    {name:"Revolut",      rate:0.8, monthly:10,terminalMonthly:0,  terminalBuy:189,      fixedPerTrx:0.02},
+    {name:"Qonto",        rate:0.7, monthly:9, terminalMonthly:0,  terminalBuy:u?199:99, fixedPerTrx:0},
+    {name:"Banque trad.", rate:0.5, monthly:15,terminalMonthly:40, terminalBuy:0,        fixedPerTrx:0},
+    {name:"Autre",        rate:1.5, monthly:0, terminalMonthly:0,  terminalBuy:200,      fixedPerTrx:0},
+  ];
+}
+
+let COMPETITORS=getCompDefaults('Ultra');
+let state={tpv:0,terminal:"Ultra",season:"faible",age:"old",ratePayg:PAYG_RECOMMENDED_RATE,rateRental:0.0169,rentalFee:19.9,duration:12,paygFloor:PAYG_RECOMMENDED_RATE,rentalRec:null,activeTab:"payg",avgTrxSize:50};
+
+function renderTabs(){
+  const isGO2=state.terminal==='GO2';
+  const bp=document.getElementById('btn-payg');
+  const br=document.getElementById('btn-rental');
+  bp.style.cssText=state.activeTab==='payg'?`background:${BLUE};color:#fff;`:`background:#fff;color:${BLUE};`;
+  if(isGO2){
+    br.style.cssText=`background:#fff;color:#aaa;opacity:0.4;cursor:not-allowed;`;
+    br.onclick=null;
+  } else {
+    br.style.cssText=state.activeTab==='rental'?`background:${BLUE};color:#fff;`:`background:#fff;color:${BLUE};`;
+    br.onclick=function(){switchTab('rental');};
+  }
+  document.getElementById('tab-payg').classList.toggle('open',state.activeTab==='payg');
+  document.getElementById('tab-rental').classList.toggle('open',state.activeTab==='rental');
+}
+
+function switchTab(tab){
+  if(tab==='rental'&&state.terminal==='GO2')return;
+  state.activeTab=tab;renderTabs();renderCompTable();renderPrime();
+}
+
+function onTerminalChange(val){
+  state.terminal=val;COMPETITORS=getCompDefaults(val);
+  const w=document.getElementById('go2-warning');
+  if(val==='GO2'){
+    w.innerHTML=alertHTML('warning','⚠','Le rental myPOS n\'est disponible qu\'avec l\'Ultra. En GO2, seul le PAYG est proposé.');
+    w.classList.remove('hidden');
+    if(state.activeTab==='rental')state.activeTab='payg';
+  } else {w.classList.add('hidden');}
+  renderTabs();
+  if(state.tpv)renderCompTable();
+}
+
+function fmt(n){return n.toFixed(2).replace('.',',');}
+function fmtPct(n){return(n*100).toFixed(2).replace('.',',')+'%';}
+function findRentalRec(tpv){for(let r of RENTAL_RATES){if(tpv>=r.tpvMin&&tpv<r.tpvMax)return r;}return RENTAL_RATES[RENTAL_RATES.length-1];}
+function getRentalMMSC(rate){for(let r of RENTAL_RATES){if(Math.abs(r.rate-rate)<0.00001)return r.mmsc||0;}return 0;}
+
+function alertHTML(type,icon,msg){
+  return`<div class="alert alert-${type}"><span class="alert-icon">${icon}</span><span>${msg}</span></div>`;
+}
+
+function buildPAYGSelect(tpv){
+  const floor=paygFloorRate(tpv);
+  const sel=document.getElementById('rate-payg-select');sel.innerHTML='';
+  PAYG_RATES.forEach(r=>{
+    const o=document.createElement('option');o.value=r.rate;
+    let lbl=r.name;
+    if(Math.abs(r.rate-PAYG_RECOMMENDED_RATE)<0.00001) lbl+='  ✓ recommandé';
+    else if(r.rate<floor)                               lbl+='  ⛔ sous plancher';
+    else                                                lbl+='  ↓ inférieur au taux recommandé';
+    o.textContent=lbl;
+    if(Math.abs(r.rate-PAYG_RECOMMENDED_RATE)<0.00001)o.selected=true;
+    sel.appendChild(o);
+  });
+  state.ratePayg=PAYG_RECOMMENDED_RATE;
+}
+
+function buildRentalSelect(tpv){
+  const rentalR=findRentalRec(tpv);
+  const minR=minRentalRate(tpv);
+  const sel=document.getElementById('rate-rental-select');sel.innerHTML='';
+  RENTAL_RATES.forEach(r=>{
+    const o=document.createElement('option');o.value=r.rate;
+    let lbl=r.name;
+    if(r.rate===rentalR.rate)    lbl+='  ✓ recommandé';
+    else if(r.rate<minR)         lbl+='  ⛔ sous plancher';
+    else if(r.rate<rentalR.rate) lbl+='  ↓ inférieur au taux recommandé';
+    o.textContent=lbl;
+    if(r.rate===rentalR.rate)o.selected=true;
+    sel.appendChild(o);
+  });
+  state.rateRental=rentalR.rate;
+}
+
+function approvalCard(label,val,sub){
+  const warn=val!=='Self'&&val!=='—'&&val!=='N/A';
+  return`<div class="metric${warn?' warn-orange':''}"><div class="mlabel">${label}</div><div class="mvalue" style="font-size:13px;line-height:1.3">${val}</div><div class="msub">${sub}</div></div>`;
+}
+
+function getPAYGApproval(rate){
+  const row=PAYG_RATES.find(r=>Math.abs(r.rate-rate)<0.00001);
+  return row?{aD:row.aD,aI:row.aI}:{aD:'Pricing Director',aI:'Pricing Director'};
+}
+function getRentalApproval(rate){
+  const row=RENTAL_RATES.find(r=>Math.abs(r.rate-rate)<0.00001);
+  return row?{aD:row.aD,aI:row.aI}:{aD:'Country Manager',aI:'CM / Head of Indirect'};
+}
+
+function calculate(){
+  const tpv=parseFloat(document.getElementById('tpv').value);
+  if(!tpv||tpv<=0){alert('Veuillez saisir une TPV mensuelle valide.');return;}
+  state.tpv=tpv;
+  state.terminal=document.getElementById('terminal').value;
+  state.season=document.getElementById('season').value;
+  state.age=document.getElementById('age').value;
+  COMPETITORS=getCompDefaults(state.terminal);
+  state.paygFloor=paygFloorRate(tpv);
+
+  const rentalR=findRentalRec(tpv);
+  state.rentalRec=rentalR;
+  const minR=minRentalRate(tpv);
+
+  buildPAYGSelect(tpv);
+  buildRentalSelect(tpv);
+
+  const isGO2=state.terminal==='GO2',isNew=state.age==='new',isHS=state.season==='forte';
+  let recoType='rental',reasons=[];
+  if(isGO2){recoType='payg';reasons.push('terminal GO2 — rental disponible uniquement avec l\'Ultra');}
+  else if(isNew){recoType='payg';reasons.push('société &lt; 12 mois');}
+  else if(isHS){recoType='payg';reasons.push('fermeture plusieurs mois/an — mensualités fixes à éviter');}
+  else if(tpv<4000){recoType='payg';reasons.push('TPV &lt; 4 000€ (seuil rental)');}
+
+  const recoIcon=recoType==='rental'?'✅':'ℹ️';
+  const recoType2=recoType==='rental'?'success':'info';
+  document.getElementById('reco-summary').innerHTML=alertHTML(recoType2,recoIcon,`<strong>Recommandation : ${recoType==='rental'?'Location (Rental)':'PAYG'}</strong>${reasons.length?' — '+reasons.join('; ')+'.':''}`);
+
+  const minRLabel=tpv<10000?'1,20% (règle &lt; 10k€)':fmtPct(minR)+' (85€ ÷ TPV)';
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="mlabel">Taux PAYG recommandé</div><div class="mvalue">${fmtPct(PAYG_RECOMMENDED_RATE)}</div><div class="msub">Plancher grille : ${fmtPct(state.paygFloor)}</div></div>
+    <div class="metric"><div class="mlabel">Taux Rental recommandé</div><div class="mvalue">${isGO2?'N/A':fmtPct(rentalR.rate)}</div><div class="msub">${isGO2?'GO2 non éligible':rentalR.tariff}</div></div>
+    <div class="metric"><div class="mlabel">Taux minimum Rental</div><div class="mvalue">${isGO2?'N/A':fmtPct(minR)}</div><div class="msub">${isGO2?'—':minRLabel}</div></div>
+    <div class="metric"><div class="mlabel">MMSC Rental</div><div class="mvalue" id="mmsc-display">${isGO2?'N/A':(rentalR.mmsc||'—')+'€'}</div><div class="msub">Min mensuel garanti</div></div>
+  `;
+
+  const go2block=document.getElementById('go2-rental-block');
+  if(isGO2){
+    go2block.innerHTML=alertHTML('warning','⚠','Location non disponible avec le terminal GO2.');
+    go2block.classList.remove('hidden');state.activeTab='payg';
+  } else {go2block.classList.add('hidden');}
+
+  renderTabs();
+  updatePAYGMetrics();
+  if(!isGO2)updateRentalMetrics();
+  renderCompTable();renderPrime();
+  document.getElementById('result-section').classList.remove('hidden');
+}
+
+function updateRatePAYG(v){state.ratePayg=parseFloat(v);updatePAYGMetrics();renderCompTable();renderPrime();}
+function updateRateRental(v){
+  state.rateRental=parseFloat(v);
+  const mmsc=getRentalMMSC(state.rateRental);
+  const el=document.getElementById('mmsc-display');if(el)el.textContent=(mmsc||'—')+'€';
+  updateRentalMetrics();renderCompTable();renderPrime();
+}
+function updateRentalFee(v){state.rentalFee=parseFloat(v);document.getElementById('rental-fee-display').textContent=fmt(state.rentalFee)+'€';updateRentalMetrics();renderCompTable();renderPrime();}
+function setDuration(d,btn){state.duration=d;document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updateRentalMetrics();renderPrime();}
+
+function updatePAYGMetrics(){
+  if(!state.tpv)return;
+  const tpv=state.tpv,r=state.ratePayg,floor=state.paygFloor;
+  const frais=tpv*r,termM=TERMINAL_PRICE[state.terminal]/12,total=frais+termM;
+  const apr=getPAYGApproval(r);
+  let alerts='';
+  if(r<floor) alerts+=alertHTML('danger','⛔',`Taux sous plancher — le taux minimum pour cette TPV est ${fmtPct(floor)}.`);
+  else if(r<PAYG_RECOMMENDED_RATE) alerts+=alertHTML('info','ℹ',`Taux inférieur au taux recommandé (${fmtPct(PAYG_RECOMMENDED_RATE)}).`);
+  document.getElementById('payg-alerts').innerHTML=alerts;
+  document.getElementById('payg-metrics').innerHTML=`
+    <div class="metric"><div class="mlabel">Frais mensuels</div><div class="mvalue">${fmt(frais)}€</div><div class="msub">TPV × ${fmtPct(r)}</div></div>
+    <div class="metric"><div class="mlabel">Terminal lissé/mois</div><div class="mvalue">${fmt(termM)}€</div><div class="msub">${state.terminal} ${TERMINAL_PRICE[state.terminal]}€ HT ÷ 12</div></div>
+    <div class="metric"><div class="mlabel">Coût mensuel total</div><div class="mvalue">${fmt(total)}€</div><div class="msub">Lissé 12 mois</div></div>
+    ${approvalCard('Validation direct',apr.aD,'Canal direct')}
+    ${approvalCard('Validation indirect',apr.aI,'Canal indirect')}
+  `;
+}
+
+function updateRentalMetrics(){
+  if(!state.tpv||state.terminal==='GO2')return;
+  const tpv=state.tpv,r=state.rateRental,fee=state.rentalFee,dur=state.duration;
+  const frais=tpv*r,totalM=frais+fee,contractVal=fee*dur,minR=minRentalRate(tpv);
+  const mmsc=getRentalMMSC(r),apr=getRentalApproval(r);
+  let alerts='';
+  if(r<minR){
+    const rl=tpv<10000?'taux minimum 1,20% pour TPV < 10 000€':'frais minimum 85€ pour TPV ≥ 10 000€';
+    alerts+=alertHTML('danger','⛔',`Taux trop bas — ${rl}. Plancher : ${fmtPct(minR)}`);
+  } else if(r<state.rentalRec.rate){
+    alerts+=alertHTML('info','ℹ',`Taux inférieur au taux recommandé (${fmtPct(state.rentalRec.rate)}).`);
+  }
+  if(mmsc&&frais<mmsc) alerts+=alertHTML('warning','⚠',`Frais (${fmt(frais)}€) < MMSC (${mmsc}€). Le minimum garanti sera facturé.`);
+  document.getElementById('rental-alerts').innerHTML=alerts;
+  document.getElementById('rental-metrics').innerHTML=`
+    <div class="metric"><div class="mlabel">Frais mensuels</div><div class="mvalue">${fmt(frais)}€</div><div class="msub">TPV × ${fmtPct(r)}</div></div>
+    <div class="metric"><div class="mlabel">Mensualité location</div><div class="mvalue">${fmt(fee)}€</div><div class="msub">${dur} mois</div></div>
+    <div class="metric"><div class="mlabel">Coût mensuel total</div><div class="mvalue">${fmt(totalM)}€</div><div class="msub">Frais + location</div></div>
+    <div class="metric"><div class="mlabel">Valeur contrat</div><div class="mvalue">${fmt(contractVal)}€</div><div class="msub">Mensualité × ${dur} mois</div></div>
+    <div class="metric"><div class="mlabel">MMSC</div><div class="mvalue">${mmsc||'—'}€</div><div class="msub">Min mensuel garanti</div></div>
+    ${approvalCard('Validation direct',apr.aD,'Canal direct')}
+    ${approvalCard('Validation indirect',apr.aI,'Canal indirect')}
+  `;
+}
+
+function getMyPOSMonthly(){
+  if(state.activeTab==='rental')return state.tpv*state.rateRental+state.rentalFee;
+  return state.tpv*state.ratePayg+TERMINAL_PRICE[state.terminal]/12;
+}
+
+function renderCompTable(){
+  if(!state.tpv)return;
+  const tpv=state.tpv,isPayg=state.activeTab==='payg',myTotal=getMyPOSMonthly();
+  const myRate=isPayg?state.ratePayg:state.rateRental;
+  const myTermBuy=isPayg?TERMINAL_PRICE[state.terminal]:0;
+  const myTermM=isPayg?0:state.rentalFee;
+  const myFrais=tpv*myRate,estTrx=tpv/state.avgTrxSize;
+
+  let rows=`<tr class="mypos-row">
+    <td><strong>myPOS (${isPayg?'PAYG':'Rental'})</strong></td>
+    <td>${fmtPct(myRate)}</td><td>—</td>
+    <td>${isPayg?'—':fmt(myTermM)+'€'}</td>
+    <td>${isPayg?fmt(myTermBuy)+'€':'—'}</td>
+    <td>${fmt(myFrais)}€</td>
+    <td style="text-align:right;font-weight:700">${fmt(myTotal)}€</td>
+    <td style="text-align:right">—</td>
+  </tr>`;
+
+  COMPETITORS.forEach((c,i)=>{
+    const frais=tpv*(c.rate/100),fixedTrx=c.fixedPerTrx*estTrx;
+    const termLissed=c.terminalBuy>0?c.terminalBuy/12:0;
+    const total=frais+fixedTrx+c.monthly+c.terminalMonthly+termLissed;
+    const diff=total-myTotal;
+    const dcol=diff>0?'#0a7c4a':'#c0140c';
+    const sign=diff>0?'+':'';
+    const fraisCell=c.fixedPerTrx>0?`${fmt(frais)}€ <span style="font-size:10px;color:#8a97b0">+${fmt(fixedTrx)}€ trx</span>`:`${fmt(frais)}€`;
+    rows+=`<tr>
+      <td style="font-weight:500">${c.name}</td>
+      <td><input class="comp-input" type="number" step="0.01" value="${c.rate.toFixed(2)}" onchange="updateComp(${i},'rate',this.value)"></td>
+      <td><input class="comp-input" type="number" step="1"    value="${c.monthly}"          onchange="updateComp(${i},'monthly',this.value)"></td>
+      <td><input class="comp-input" type="number" step="0.5"  value="${c.terminalMonthly}"  onchange="updateComp(${i},'terminalMonthly',this.value)"></td>
+      <td><input class="comp-input" type="number" step="1" min="0" value="${c.terminalBuy.toFixed(0)}" onchange="updateComp(${i},'terminalBuy',this.value)"></td>
+      <td>${fraisCell}</td>
+      <td style="text-align:right;font-weight:600">${fmt(total)}€</td>
+      <td style="text-align:right;font-weight:600"><span style="color:${dcol}">${sign}${fmt(diff)}€</span></td>
+    </tr>`;
+  });
+  document.getElementById('comp-body').innerHTML=rows;
+}
+
+function updateComp(i,field,val){COMPETITORS[i][field]=parseFloat(val)||0;renderCompTable();renderPrime();}
+
+function renderPrime(){
+  if(!state.tpv)return;
+  const ps=document.getElementById('prime-section');
+  if(state.activeTab==='payg'){ps.classList.add('hidden');return;}
+  ps.classList.remove('hidden');
+  const cv=state.rentalFee*state.duration;
+  document.getElementById('prime-grid').innerHTML=`
+    <div class="prime-item"><div class="ppct">10%</div><div class="pval">${fmt(cv*0.10)}€</div><div class="plabel">sur ${fmt(cv)}€</div></div>
+    <div class="prime-item"><div class="ppct">25%</div><div class="pval">${fmt(cv*0.25)}€</div><div class="plabel">sur ${fmt(cv)}€</div></div>
+    <div class="prime-item"><div class="ppct">50%</div><div class="pval">${fmt(cv*0.50)}€</div><div class="plabel">sur ${fmt(cv)}€</div></div>
+  `;
+}
+
+renderTabs();
+</script>
+</body>
+</html>
