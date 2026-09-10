@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>myPOS — Outil Tarifaire France</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --blue: #1870f0;
+    --blue-light: #e8f0fe;
+    --blue-mid: #4d94ff;
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f0f3fa;
+    --border: #e2e8f4;
+    --border2: #c8d5ed;
+    --text: #0f1f3d;
+    --text2: #4a5a78;
+    --text3: #8a97b0;
+    --success: #0a7c4a;
+    --success-bg: #e6f7ef;
+    --success-border: #b3e8cf;
+    --warning: #8a5800;
+    --warning-bg: #fff8e6;
+    --warning-border: #f5d580;
+    --danger: #c0140c;
+    --danger-bg: #fff0ef;
+    --danger-border: #f5b3b0;
+    --info: #1254b0;
+    --info-bg: #e8f0fe;
+    --info-border: #b3cdf5;
+    --orange: #7a4f00;
+    --orange-bg: #fff3cd;
+    --orange-border: #f0a500;
+    --custom-bg: #fbe6d0;
+    --custom-border: #eec49b;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(15,31,61,0.08), 0 4px 16px rgba(15,31,61,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; font-size: 14px; line-height: 1.5;
+  }
+
+  .topbar {
+    background: var(--blue); padding: 0 24px; height: 52px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(24,112,240,0.3);
+  }
+  .topbar-logo {
+    width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; color: #fff; font-size: 13px; letter-spacing: -0.5px;
+  }
+  .topbar-title { color: #fff; font-weight: 600; font-size: 15px; }
+  .topbar-badge { background: rgba(255,255,255,0.18); color: #fff; font-size: 11px; padding: 2px 10px; border-radius: 20px; font-weight: 500; }
+
+  .page { max-width: 980px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface2); display: flex; align-items: center; gap: 8px;
+  }
+  .card-header-icon {
+    width: 22px; height: 22px; background: var(--blue); border-radius: 5px;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff;
+  }
+  .card-title { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
+  .card-body { padding: 20px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+  .req { color: var(--danger); margin-left: 2px; }
+  .field input, .field select {
+    width: 100%; padding: 8px 12px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+    font-size: 14px; font-family: 'DM Sans', sans-serif; appearance: none; -webkit-appearance: none;
+  }
+  .field select, .rate-select-wrap select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5a78' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  }
+  .field input:focus, .field select:focus, .rate-select-wrap select:focus {
+    outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,112,240,0.12);
+  }
+  .field .hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .calc-btn {
+    width: 100%; margin-top: 16px; padding: 11px; background: var(--blue); color: #fff;
+    border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+  .calc-btn:hover { opacity: 0.9; }
+  .calc-btn:focus-visible { outline: 3px solid rgba(24,112,240,0.4); outline-offset: 2px; }
+
+  .alert {
+    padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px;
+    margin-bottom: 10px; border: 1px solid; display: flex; align-items: flex-start; gap: 8px;
+  }
+  .alert:last-child { margin-bottom: 0; }
+  .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .alert-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+  .alert-info    { background: var(--info-bg);    color: var(--info);    border-color: var(--info-border); }
+  .alert-warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+  .alert-danger  { background: var(--danger-bg);  color: var(--danger);  border-color: var(--danger-border); }
+  .alert-strong  { background: var(--danger-bg);  color: var(--danger);  border: 2px solid var(--danger); font-weight: 500; }
+
+  .offer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .offer { border: 2px solid var(--border); border-radius: var(--radius); padding: 16px 18px; background: var(--surface); }
+  .offer.reco  { border-color: var(--success); background: var(--success-bg); }
+  .offer.floor { border-color: var(--orange-border); background: var(--orange-bg); }
+  .offer-kicker { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+  .offer.reco  .offer-kicker { color: var(--success); }
+  .offer.floor .offer-kicker { color: var(--orange); }
+  .offer-name { font-size: 19px; font-weight: 700; line-height: 1.2; }
+  .offer-terms { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text2); margin-top: 5px; }
+  .offer-cost { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 600; margin-top: 12px; letter-spacing: -0.02em; }
+  .offer-cost span { font-size: 12px; font-weight: 400; color: var(--text3); font-family: 'DM Sans', sans-serif; }
+  .offer-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .offer-note { font-size: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(15,31,61,0.12); line-height: 1.45; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .metric { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .metric.hl { background: var(--blue-light); border-color: var(--border2); }
+  .metric.hl .mvalue { color: var(--blue); }
+  .metric.warn { background: var(--orange-bg); border-color: var(--orange-border); }
+  .metric.warn .mvalue { color: var(--orange); }
+  .metric.bad { background: var(--danger-bg); border-color: var(--danger-border); }
+  .metric.bad .mvalue { color: var(--danger); }
+  .metric .mlabel { font-size: 11px; font-weight: 500; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .metric .mvalue { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .metric .msub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  .plan-group-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin: 4px 0 8px; }
+  .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .plan-card {
+    text-align: left; border: 2px solid var(--border); background: var(--surface);
+    border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; color: var(--text); position: relative;
+  }
+  .plan-card:hover:not(.disabled) { border-color: var(--blue-mid); }
+  .plan-card:focus-visible { outline: 3px solid rgba(24,112,240,0.35); outline-offset: 1px; }
+  .plan-card.sel { border-color: var(--blue); background: var(--blue-light); }
+  .plan-card.custom.sel { border-color: var(--orange-border); background: var(--custom-bg); }
+  .plan-card.disabled { opacity: 0.4; cursor: not-allowed; }
+  .plan-card .pname { font-weight: 700; font-size: 14px; }
+  .plan-card .prate { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .plan-card .pcost { font-family: 'DM Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 6px; }
+  .plan-card .pdesc { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.35; }
+  .plan-tag { position: absolute; top: -9px; right: 10px; font-size: 10px; font-weight: 600; padding: 1px 8px; border-radius: 20px; background: var(--success); color: #fff; }
+  .plan-tag.floor { background: var(--orange-border); color: #3d2800; }
+  .plan-tag.ko { background: var(--text3); }
+
+  .rate-select-wrap, .slider-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .rate-select-wrap label, .slider-wrap label {
+    font-size: 12px; font-weight: 500; color: var(--text2); min-width: 150px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .rate-select-wrap select {
+    flex: 1; min-width: 240px; padding: 8px 36px 8px 12px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background-color: var(--surface); color: var(--text);
+    font-size: 13px; font-family: 'DM Mono', monospace; appearance: none;
+  }
+  .slider-wrap input[type=range] { flex: 1; min-width: 160px; height: 4px; accent-color: var(--blue); cursor: pointer; }
+  .slider-wrap .sval { font-size: 15px; font-weight: 600; min-width: 78px; text-align: right; color: var(--blue); font-family: 'DM Mono', monospace; }
+  .dur-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .dur-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .dur-btn {
+    padding: 5px 16px; border: 1.5px solid var(--border2); border-radius: 20px;
+    font-size: 12px; font-weight: 500; cursor: pointer; background: transparent;
+    color: var(--text2); font-family: 'DM Sans', sans-serif;
+  }
+  .dur-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .dur-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  .bd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .bd-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+  .bd-table td:last-child { text-align: right; font-family: 'DM Mono', monospace; white-space: nowrap; }
+  .bd-table .bd-sub { font-size: 11px; color: var(--text3); display: block; margin-top: 2px; }
+  .bd-table .bd-total td { border-top: 2px solid var(--border2); border-bottom: none; font-weight: 700; font-size: 15px; padding-top: 12px; }
+  .bd-table .bd-total td:last-child { color: var(--blue); font-size: 18px; }
+  .bd-table .bd-muted td { color: var(--text3); }
+  .incl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); }
+  .chip.ko { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+
+  .comp-wrap { overflow-x: auto; }
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 660px; }
+  .comp-table th {
+    text-align: left; padding: 8px 10px; font-weight: 600; font-size: 11px;
+    color: var(--text2); background: var(--surface2); border-bottom: 2px solid var(--border);
+    vertical-align: bottom; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .comp-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table .mypos-row td { color: var(--success); font-weight: 600; background: var(--success-bg); }
+  .comp-input {
+    width: 62px; padding: 4px 6px; border: 1px solid var(--border2); border-radius: 4px;
+    font-size: 12px; text-align: right; background: var(--surface); color: var(--text);
+    font-family: 'DM Mono', monospace;
+  }
+  .comp-input:focus { outline: none; border-color: var(--blue); }
+
+  .prime-box { border: 2px solid var(--success-border); border-radius: var(--radius); padding: 16px; background: var(--success-bg); }
+  .prime-title { font-size: 12px; font-weight: 600; color: var(--success); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .prime-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .prime-item { text-align: center; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--success-border); background: var(--surface); }
+  .prime-item .ppct { font-size: 15px; font-weight: 700; color: var(--success); }
+  .prime-item .pval { font-size: 20px; font-weight: 700; margin: 4px 0; font-family: 'DM Mono', monospace; }
+  .prime-item .plabel { font-size: 11px; color: var(--text3); }
+
+  .section-note { font-size: 11px; color: var(--text3); margin-bottom: 12px; line-height: 1.5; }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .page { padding: 14px 12px 40px; }
+    .prime-grid { gap: 6px; }
+    .rate-select-wrap label, .slider-wrap label { min-width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">MP</div>
+  <span class="topbar-title">Outil Tarifaire France</span>
+  <span class="topbar-badge">Account Plans</span>
+</div>
+
+<div class="page">
+
+  <!-- ① INFORMATIONS CLIENT -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">1</div>
+      <span class="card-title">Informations client</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label for="tpv">TPV mensuelle estimée (€)<span class="req">*</span></label>
+          <input type="number" id="tpv" placeholder="ex: 15000" min="0" step="100">
+        </div>
+        <div class="field">
+          <label for="terminal">Terminal<span class="req">*</span></label>
+          <select id="terminal" onchange="onTerminalChange(this.value)">
+            <option value="GO2" selected>GO2 — 39 € HT</option>
+            <option value="Flex">Flex — 69 € HT</option>
+            <option value="Ultra">Ultra — 179 € HT (seul terminal louable)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="season">Saisonnalité<span class="req">*</span></label>
+          <select id="season">
+            <option value="faible" selected>Faible (activité régulière)</option>
+            <option value="forte">Forte (fermeture plusieurs mois/an)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="age">Âge de la société<span class="req">*</span></label>
+          <select id="age">
+            <option value="old" selected>Plus de 12 mois</option>
+            <option value="new">Moins de 12 mois</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="transfers">Virements sortants / mois<span class="req">*</span></label>
+          <input type="number" id="transfers" value="10" min="0" step="1">
+        </div>
+        <div class="field">
+          <label for="cards">Cartes physiques souhaitées<span class="req">*</span></label>
+          <input type="number" id="cards" value="1" min="1" step="1">
+        </div>
+        <div class="field">
+          <label for="users">Utilisateurs du compte<span class="req">*</span></label>
+          <input type="number" id="users" value="1" min="1" step="1">
+          <div class="hint">Titulaire inclus</div>
+        </div>
+        <div class="field">
+          <label for="ca">Chiffre d'affaires annuel (€)</label>
+          <input type="number" id="ca" placeholder="Facultatif">
+        </div>
+      </div>
+      <div id="form-notice" style="margin-top:12px"></div>
+      <button class="calc-btn" onclick="calculate()">Calculer</button>
+    </div>
+  </div>
+
+  <div id="result-section" class="hidden">
+
+    <!-- ② RECOMMANDATION -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">2</div>
+        <span class="card-title">Recommandation</span>
+      </div>
+      <div class="card-body">
+        <div class="offer-grid" id="offer-grid"></div>
+        <div id="reco-alerts" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- ③ SIMULATION -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">3</div>
+        <span class="card-title">Simulation</span>
+      </div>
+      <div class="card-body">
+        <div class="plan-group-label">Plans catalogue — matériel acheté, sans engagement</div>
+        <div class="plan-grid" id="plan-grid-default"></div>
+        <div class="plan-group-label">Plans Custom — taux négocié, MMSC systématique</div>
+        <div class="plan-grid" id="plan-grid-custom"></div>
+
+        <div id="custom-controls" class="hidden">
+          <div class="rate-select-wrap">
+            <label for="rate-select">Taux d'acquisition</label>
+            <select id="rate-select" onchange="updateRate(this.value)"></select>
+          </div>
+        </div>
+
+        <div id="rental-controls" class="hidden">
+          <div class="slider-wrap">
+            <label for="rental-fee">Mensualité location</label>
+            <input type="range" id="rental-fee" step="1" min="14.9" max="34.9" value="24.9" oninput="updateRentalFee(this.value)">
+            <span class="sval" id="rental-fee-display">24,90 €</span>
+          </div>
+          <p class="section-note" style="margin:-4px 0 12px">Ultra uniquement, de 14,90 € à 34,90 €. Moyenne vendue : 24,90 € sur 48 mois.</p>
+          <div class="dur-label">Durée d'engagement</div>
+          <div class="dur-btns" id="dur-btns">
+            <button class="dur-btn" onclick="setDuration(12,this)">12 mois</button>
+            <button class="dur-btn" onclick="setDuration(24,this)">24 mois</button>
+            <button class="dur-btn" onclick="setDuration(36,this)">36 mois</button>
+            <button class="dur-btn active" onclick="setDuration(48,this)">48 mois</button>
+          </div>
+        </div>
+
+        <div id="offer-alerts"></div>
+        <div class="metric-grid" id="offer-metrics" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- ④ FRAIS CLIENT -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">4</div>
+        <span class="card-title">Ce que le client paiera chaque mois</span>
+      </div>
+      <div class="card-body">
+        <p class="section-note">Vue à présenter au client. L'achat du terminal est lissé sur 12 mois.</p>
+        <table class="bd-table"><tbody id="breakdown-body"></tbody></table>
+        <div class="incl-chips" id="incl-chips"></div>
+      </div>
+    </div>
+
+    <!-- ⑤ CONCURRENTS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">5</div>
+        <span class="card-title">Comparaison concurrents</span>
+      </div>
+      <div class="card-body">
+        <p class="section-note">Champs modifiables. Achat terminal lissé sur 12 mois. Revolut : frais par transaction estimés sur un panier moyen de 50 €.</p>
+        <div class="comp-wrap">
+          <table class="comp-table">
+            <thead><tr>
+              <th style="width:118px">Prestataire</th>
+              <th style="width:62px">Taux (%)</th>
+              <th style="width:68px">Abonnement (€)</th>
+              <th style="width:72px">Terminal /mois (€)</th>
+              <th style="width:72px">Achat terminal (€)</th>
+              <th style="width:88px">Frais acquiring (€)</th>
+              <th style="width:78px;text-align:right">Total /mois</th>
+              <th style="width:72px;text-align:right">Écart</th>
+            </tr></thead>
+            <tbody id="comp-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ PRIME -->
+    <div id="prime-section" class="card hidden">
+      <div class="card-header">
+        <div class="card-header-icon">6</div>
+        <span class="card-title">Prime commerciale estimée</span>
+      </div>
+      <div class="card-body">
+        <div class="prime-box">
+          <div class="prime-title">Valeur du contrat de location</div>
+          <p class="section-note" id="prime-note" style="margin:0 0 12px"></p>
+          <div class="prime-grid" id="prime-grid"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ══════════════════════════════════════════════════════════
+   RÉFÉRENTIEL
+   ══════════════════════════════════════════════════════════ */
+
+const TERMINALS = {
+  GO2:   { label:'GO2',   price:39  },
+  Flex:  { label:'Flex',  price:69  },
+  Ultra: { label:'Ultra', price:179 }
+};
+
+const RENTAL_ELIGIBLE = ['Ultra'];   // seul terminal louable aujourd'hui
+const RENTAL_SOON     = ['Flex'];    // louable d'ici quelques mois
+const RENTAL_FEE_MIN  = 14.9;
+const RENTAL_FEE_MAX  = 34.9;
+const RENTAL_FEE_AVG  = 24.9;
+const RENTAL_DUR_AVG  = 48;
+const RENTAL_MIN_TPV  = 4000;
+
+const TRANSFER_FEE = 1;
+const AVG_TRX_SIZE = 50;
+
+/* Sécurité MMSC : écart entre la commission attendue et le minimum garanti, en % de la commission.
+   C'est la baisse de TPV que le client peut absorber avant de payer le MMSC.
+   Rien à voir avec la marge commerciale de myPOS. */
+const BUFFER_WARN = 0.30;   // seuil d'avertissement
+const BUFFER_HIGH = 0.10;   // seuil d'alerte rouge
+/* Sécurité MMSC minimale exigée pour qu'une offre puisse servir de plancher :
+   en dessous, le minimum garanti est trop proche de la commission attendue. */
+const FLOOR_MIN_BUFFER = 0.20;
+
+const RATES = [
+  { rate:0.0169, tariff:"00327YEUR", mmsc:0,   buyMin:0,      buyMax:3000,  rentMin:4000,   rentMax:10000 },
+  { rate:0.0149, tariff:"0032GCEUR", mmsc:10,  buyMin:3000,   buyMax:5000,  rentMin:4000,   rentMax:10000 },
+  { rate:0.0139, tariff:"0032GDEUR", mmsc:20,  buyMin:5000,   buyMax:7000,  rentMin:4000,   rentMax:10000 },
+  { rate:0.0129, tariff:"0032GFEUR", mmsc:30,  buyMin:7000,   buyMax:10000, rentMin:4000,   rentMax:10000 },
+  { rate:0.0120, tariff:"0032GHEUR", mmsc:40,  buyMin:10000,  buyMax:15000, rentMin:4000,   rentMax:10000 },
+  { rate:0.0110, tariff:"0032GJEUR", mmsc:50,  buyMin:15000,  buyMax:20000, rentMin:10000,  rentMax:15000 },
+  { rate:0.0099, tariff:"0032GLEUR", mmsc:50,  buyMin:20000,  buyMax:30000, rentMin:10000,  rentMax:15000 },
+  { rate:0.0089, tariff:"0032GNEUR", mmsc:60,  buyMin:30000,  buyMax:50000, rentMin:15000,  rentMax:20000 },
+  { rate:0.0079, tariff:"0032GOEUR", mmsc:60,  buyMin:50000,  buyMax:1e9,   rentMin:15000,  rentMax:20000 },
+  { rate:0.0069, tariff:"0032GPEUR", mmsc:70,  buyMin:50000,  buyMax:1e9,   rentMin:20000,  rentMax:30000 },
+  { rate:0.0065, tariff:"0032GQEUR", mmsc:70,  buyMin:50000,  buyMax:1e9,   rentMin:20000,  rentMax:30000 },
+  { rate:0.0060, tariff:"0032GVEUR", mmsc:80,  buyMin:50000,  buyMax:1e9,   rentMin:30000,  rentMax:50000 },
+  { rate:0.0055, tariff:"0032GWEUR", mmsc:100, buyMin:50000,  buyMax:1e9,   rentMin:50000,  rentMax:1e9   },
+  { rate:0.0050, tariff:"0032GXEUR", mmsc:100, buyMin:100000, buyMax:1e9,   rentMin:50000,  rentMax:1e9   },
+  { rate:0.0045, tariff:"0032GYEUR", mmsc:100, buyMin:100000, buyMax:1e9,   rentMin:50000,  rentMax:1e9   },
+  { rate:0.0042, tariff:"0032H0EUR", mmsc:100, buyMin:100000, buyMax:1e9,   rentMin:50000,  rentMax:1e9   },
+  { rate:0.0040, tariff:"0032H2EUR", mmsc:100, buyMin:100000, buyMax:1e9,   rentMin:50000,  rentMax:1e9   },
+  { rate:0.0039, tariff:"0032H4EUR", mmsc:100, buyMin:100000, buyMax:1e9,   rentMin:50000,  rentMax:1e9   },
+  { rate:0.0037, tariff:"0032H6EUR", mmsc:150, buyMin:100000, buyMax:1e9,   rentMin:100000, rentMax:1e9   },
+  { rate:0.0035, tariff:"0032H8EUR", mmsc:150, buyMin:100000, buyMax:1e9,   rentMin:100000, rentMax:1e9   }
+];
+
+/* maxUsers = titulaire + membres d'équipe supplémentaires */
+const PLANS = [
+  { key:'one',  name:'One',  kind:'default', rate:0.0169, fee:0,
+    transfers:0,  cards:1, vcards:2,  maxUsers:2,  freeWd:0, desc:"Aucun frais fixe." },
+  { key:'plus', name:'Plus', kind:'default', rate:0.0089, fee:19,
+    transfers:15, cards:2, vcards:5,  maxUsers:4,  freeWd:3, desc:"15 virements inclus." },
+  { key:'pro',  name:'Pro',  kind:'default', rate:0.0079, fee:39,
+    transfers:30, cards:3, vcards:20, maxUsers:11, freeWd:5, desc:"30 virements, 3 cartes, 11 utilisateurs." },
+  { key:'cone', name:'Custom One', kind:'custom', rate:null, fee:0, rental:false,
+    transfers:0,  cards:1, vcards:2,  maxUsers:2,  freeWd:0, desc:"Taux négocié + MMSC. Achat, sans engagement." },
+  { key:'cpro', name:'Custom Pro Rental', kind:'custom', rate:null, fee:0, rental:true,
+    transfers:30, cards:3, vcards:20, maxUsers:11, freeWd:5, desc:"Taux négocié + MMSC + location Ultra." }
+];
+const PLAN_BY_KEY = {};
+PLANS.forEach(p => { PLAN_BY_KEY[p.key] = p; });
+
+const MAX_CARDS = Math.max(...PLANS.map(p => p.cards));
+const MAX_USERS = Math.max(...PLANS.map(p => p.maxUsers));
+
+function getCompDefaults(t){
+  const b = { GO2:{a:34,b:34,c:49,d:99,e:79},
+              Flex:{a:79,b:79,c:189,d:129,e:139},
+              Ultra:{a:169,b:169,c:189,d:199,e:200} }[t];
+  return [
+    { name:"SumUp",        rate:1.75, monthly:0,  terminalMonthly:0,  terminalBuy:b.a, fixedPerTrx:0    },
+    { name:"SumUp Plus",   rate:0.89, monthly:19, terminalMonthly:0,  terminalBuy:b.b, fixedPerTrx:0    },
+    { name:"Flatpay",      rate:1.29, monthly:0,  terminalMonthly:0,  terminalBuy:0,   fixedPerTrx:0    },
+    { name:"Revolut",      rate:0.80, monthly:10, terminalMonthly:0,  terminalBuy:b.c, fixedPerTrx:0.02 },
+    { name:"Qonto",        rate:0.70, monthly:9,  terminalMonthly:0,  terminalBuy:b.d, fixedPerTrx:0    },
+    { name:"Banque trad.", rate:0.50, monthly:15, terminalMonthly:40, terminalBuy:0,   fixedPerTrx:0    },
+    { name:"Autre",        rate:1.50, monthly:0,  terminalMonthly:0,  terminalBuy:b.e, fixedPerTrx:0    }
+  ];
+}
+
+/* ══════════════════════════════════════════════════════════
+   ÉTAT
+   ══════════════════════════════════════════════════════════ */
+
+let COMPETITORS = getCompDefaults('GO2');
+
+const state = {
+  tpv:0, terminal:'GO2', season:'faible', age:'old',
+  transfers:10, cards:1, users:1,
+  plan:'one', rate:0.0169, rentalFee:RENTAL_FEE_AVG, duration:RENTAL_DUR_AVG,
+  reco:null, floor:null
+};
+
+/* ══════════════════════════════════════════════════════════
+   OUTILS
+   ══════════════════════════════════════════════════════════ */
+
+const eq     = (a,b) => Math.abs(a-b) < 1e-9;
+const fmt    = n => n.toFixed(2).replace('.',',');
+const fmtInt = n => Math.round(n).toLocaleString('fr-FR');
+const fmtPct = n => (n*100).toFixed(2).replace('.',',') + ' %';
+const pctInt = n => Math.round(n*100) + ' %';
+const rateRow= r => RATES.find(x => eq(x.rate, r)) || RATES[0];
+const getMMSC= r => rateRow(r).mmsc;
+
+const alertHTML  = (t,i,m) => `<div class="alert alert-${t}"><span class="alert-icon">${i}</span><span>${m}</span></div>`;
+const metricHTML = (l,v,s,c) => `<div class="metric${c?' '+c:''}"><div class="mlabel">${l}</div><div class="mvalue">${v}</div><div class="msub">${s||''}</div></div>`;
+
+/* ══════════════════════════════════════════════════════════
+   DISPONIBILITÉ DES OFFRES
+   ══════════════════════════════════════════════════════════ */
+
+function rentalTerminalOK(){ return RENTAL_ELIGIBLE.includes(state.terminal); }
+
+/* Profils sur lesquels la location est interdite sans validation hiérarchique */
+function rentalBlockers(){
+  const b = [];
+  if (state.tpv < RENTAL_MIN_TPV) b.push(`TPV sous ${fmtInt(RENTAL_MIN_TPV)} €`);
+  if (state.age === 'new')        b.push('société de moins de 12 mois');
+  if (state.season === 'forte')   b.push('activité très saisonnière');
+  return b;
+}
+
+function capacityOutOfRange(){ return state.cards > MAX_CARDS || state.users > MAX_USERS; }
+
+function planAvailability(planKey){
+  const p = PLAN_BY_KEY[planKey];
+  const issues = [];
+  if (state.cards > p.cards)    issues.push(`${state.cards} cartes demandées, ${p.cards} au plan`);
+  if (state.users > p.maxUsers) issues.push(`${state.users} utilisateurs demandés, ${p.maxUsers} au plan`);
+
+  let hardBlock = null, needsApproval = null;
+  if (p.rental && !rentalTerminalOK()){
+    hardBlock = RENTAL_SOON.includes(state.terminal)
+      ? `Le ${state.terminal} ne sera louable que dans quelques mois`
+      : `Le ${state.terminal} ne se loue pas`;
+  } else if (p.rental){
+    const b = rentalBlockers();
+    if (b.length) needsApproval = b;
+  }
+  const capacityOK = issues.length === 0;
+  return { issues, capacityOK, hardBlock, needsApproval,
+           selectable: !hardBlock && (capacityOK || capacityOutOfRange()),
+           autoOK: !hardBlock && !needsApproval && capacityOK };
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOTEUR DE CALCUL
+   ══════════════════════════════════════════════════════════ */
+
+function offerTerminal(p){ return p.rental ? 'Ultra' : state.terminal; }
+
+function computeOffer(planKey, rate, rentalFee){
+  const p   = PLAN_BY_KEY[planKey];
+  const tpv = state.tpv;
+  const r   = p.kind === 'custom' ? rate : p.rate;
+
+  const commission = tpv * r;
+  const mmsc       = p.kind === 'custom' ? getMMSC(r) : 0;
+  const billed     = p.kind === 'custom' ? Math.max(commission, mmsc) : commission;
+  const mmscApplied= p.kind === 'custom' && mmsc > commission;
+  const buffer     = (p.kind === 'custom' && commission > 0) ? (commission - mmsc) / commission : null;
+
+  const extraTransfers = Math.max(0, state.transfers - p.transfers);
+  const transferCost   = extraTransfers * TRANSFER_FEE;
+
+  const term        = offerTerminal(p);
+  const terminalBuy = TERMINALS[term].price;
+  const terminalCost= p.rental ? rentalFee : terminalBuy / 12;
+
+  const total = billed + p.fee + transferCost + terminalCost;
+
+  return { plan:p, key:planKey, rate:r, commission, mmsc, billed, mmscApplied, buffer,
+           extraTransfers, transferCost, planFee:p.fee, rental:!!p.rental,
+           terminal:term, terminalBuy, terminalCost, total,
+           avail: planAvailability(planKey) };
+}
+
+function bufferLevel(o){
+  if (o.plan.kind !== 'custom' || o.mmsc === 0) return null;
+  if (o.buffer < 0)           return 'over';
+  if (o.buffer < BUFFER_HIGH) return 'high';
+  if (o.buffer < BUFFER_WARN) return 'warn';
+  return 'ok';
+}
+
+function bufferAlert(o){
+  const lvl = bufferLevel(o);
+  if (!lvl || lvl === 'ok') return '';
+  if (lvl === 'over'){
+    return alertHTML('strong','⛔',
+      `<strong>Le MMSC dépasse la commission attendue.</strong> À ${fmtInt(state.tpv)} € de TPV, la commission est de ${fmt(o.commission)} € mais le minimum garanti est de ${o.mmsc} €. Le client paiera ${o.mmsc} € tous les mois, soit ${fmt(o.mmsc - o.commission)} € de plus que son acquiring réel. Ce taux ne le sert pas.`);
+  }
+  if (lvl === 'high'){
+    return alertHTML('danger','⛔',
+      `<strong>Sécurité MMSC de ${pctInt(o.buffer)} seulement.</strong> Il suffit que la TPV du client baisse de ${pctInt(o.buffer)} pour qu'il paie le MMSC de ${o.mmsc} € au lieu de sa commission. À dire au client avant de signer.`);
+  }
+  return alertHTML('warning','!',
+    `<strong>Sécurité MMSC de ${pctInt(o.buffer)}.</strong> Le MMSC est de ${o.mmsc} € pour une commission attendue de ${fmt(o.commission)} €. Si le chiffre du client baisse de plus de ${pctInt(o.buffer)} sur un mois creux, il paiera le minimum garanti.`);
+}
+
+/* ══════════════════════════════════════════════════════════
+   OFFRE RECOMMANDÉE ET OFFRE PLANCHER
+   ══════════════════════════════════════════════════════════ */
+
+function buyRecRate(tpv){
+  const r = RATES.find(x => tpv >= x.buyMin && tpv < x.buyMax);
+  return r ? r.rate : RATES[RATES.length-1].rate;
+}
+function rentalRecRate(tpv){
+  const r = RATES.find(x => tpv >= x.rentMin && tpv < x.rentMax);
+  return r ? r.rate : RATES[0].rate;
+}
+function gridRate(p){
+  if (p.kind !== 'custom') return p.rate;
+  return p.rental ? rentalRecRate(state.tpv) : buyRecRate(state.tpv);
+}
+
+/* Meilleur taux atteignable sur un plan donné en gardant la sécurité MMSC minimale.
+   C'est le plancher propre à ce plan. */
+function bestRateForPlan(key){
+  const p = PLAN_BY_KEY[key];
+  if (p.kind !== 'custom') return p.rate;
+  let best = null;
+  RATES.forEach(r => {
+    const o = computeOffer(key, r.rate, state.rentalFee);
+    if (o.buffer !== null && o.buffer < FLOOR_MIN_BUFFER) return;
+    if (!best || o.total < best.total - 1e-9 ||
+        (Math.abs(o.total - best.total) < 1e-9 && o.rate > best.rate)) best = o;
+  });
+  return best ? best.rate : gridRate(p);
+}
+
+/* Taux proposé par défaut dans le simulateur */
+function defaultRateFor(key){
+  if (state.reco && key === state.reco.key) return state.reco.rate;
+  return bestRateForPlan(key);
+}
+
+function cheapestDefault(){
+  const c = PLANS.filter(p => p.kind === 'default').map(p => computeOffer(p.key, p.rate, 0));
+  const ok = c.filter(o => o.avail.capacityOK);
+  return (ok.length ? ok : c).reduce((a,b) => b.total < a.total ? b : a);
+}
+
+/* Toutes les offres proposables sans validation hiérarchique.
+   Pour les plans Custom, on balaie toute la grille de taux. */
+function allAvailableOffers(ignoreCapacity){
+  const out = [];
+  PLANS.forEach(p => {
+    const av = planAvailability(p.key);
+    const ok = ignoreCapacity ? (!av.hardBlock && !av.needsApproval) : av.autoOK;
+    if (!ok) return;
+    if (p.kind === 'default'){
+      out.push(computeOffer(p.key, p.rate, 0));
+    } else {
+      RATES.forEach(r => {
+        const o = computeOffer(p.key, r.rate, state.rentalFee);
+        // Le plancher exige au moins 20 % de sécurité MMSC.
+        if (o.buffer !== null && o.buffer < FLOOR_MIN_BUFFER) return;
+        out.push(o);
+      });
+    }
+  });
+  return out;
+}
+
+/* L'offre plancher est celle qui coûte le moins cher au client.
+   Baisser le taux au-delà ferait remonter la facture via le MMSC. */
+function findFloorOffer(){
+  let all = allAvailableOffers(false);
+  if (!all.length) all = allAvailableOffers(true);   // besoin hors catalogue
+  if (!all.length) return null;
+  return all.reduce((best, o) => {
+    if (o.total < best.total - 1e-9) return o;
+    if (Math.abs(o.total - best.total) < 1e-9){
+      if (o.rate > best.rate) return o;                                  // à prix client égal, garder le meilleur taux pour myPOS
+      if (eq(o.rate, best.rate) && o.plan.kind === 'default') return o;   // et l'offre la plus simple
+    }
+    return best;
+  });
+}
+
+function buildRecommendation(){
+  const tpv = state.tpv;
+  const isNew = state.age === 'new', isSeason = state.season === 'forte';
+  const reasons = [];
+  let key, segment;
+
+  if (isNew || isSeason || tpv < 4000){
+    segment = 'account';
+    if (isNew)      reasons.push('société de moins de 12 mois');
+    if (isSeason)   reasons.push('activité saisonnière');
+    if (tpv < 4000) reasons.push('TPV sous 4 000 €');
+    key = cheapestDefault().key;
+  } else if (tpv > 10000 && planAvailability('cpro').autoOK){
+    segment = 'rental';
+    reasons.push('société établie, activité régulière, TPV au-dessus de 10 000 €');
+    key = 'cpro';
+  } else if (tpv > 10000){
+    segment = 'rental-unavailable';
+    reasons.push('TPV au-dessus de 10 000 €');
+    key = cheapestDefault().key;
+  } else {
+    segment = 'grey';
+    reasons.push('TPV entre 4 000 € et 10 000 €');
+    key = cheapestDefault().key;
+  }
+  return { key, rate: gridRate(PLAN_BY_KEY[key]), segment, reasons };
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDU — SECTION 2
+   ══════════════════════════════════════════════════════════ */
+
+function offerCardHTML(kind, o, kicker, note){
+  const terms = o.plan.kind === 'custom'
+    ? `${fmtPct(o.rate)} · MMSC ${o.mmsc} €`
+    : `${fmtPct(o.rate)}${o.planFee ? ' · ' + o.planFee + ' €/mois' : ' · aucun frais fixe'}`;
+  return `<div class="offer ${kind}">
+    <div class="offer-kicker">${kicker}</div>
+    <div class="offer-name">${o.plan.name}</div>
+    <div class="offer-terms">${terms}</div>
+    <div class="offer-cost">${fmt(o.total)} €<span> /mois</span></div>
+    <div class="offer-sub">Coût client tout compris, terminal lissé</div>
+    ${note ? `<div class="offer-note">${note}</div>` : ''}
+  </div>`;
+}
+
+function renderRecommendation(){
+  const reco = state.reco, floor = state.floor;
+  const ro = computeOffer(reco.key, reco.rate, state.rentalFee);
+  const same = floor && floor.key === ro.key && eq(floor.rate, ro.rate);
+
+  let cards = offerCardHTML('reco', ro, 'Offre recommandée',
+    reco.reasons.length ? 'Profil : ' + reco.reasons.join(', ') + '.' : '');
+  if (!floor){
+    document.getElementById('offer-grid').innerHTML = cards;
+    document.getElementById('reco-alerts').innerHTML = capacityOutOfRange()
+      ? alertHTML('strong','⛔', `Besoin hors catalogue : le maximum est de ${MAX_CARDS} cartes physiques et ${MAX_USERS} utilisateurs. Remonter le cas avant de chiffrer.`)
+      : '';
+    return;
+  }
+
+  if (floor && !same){
+    let note = `Économise ${fmt(ro.total - floor.total)} € par mois au client.`;
+    if (floor.plan.kind === 'custom'){
+      note += ` Sécurité MMSC : ${pctInt(floor.buffer)}, soit la baisse de TPV que le client peut absorber avant de payer le minimum garanti. Aucun taux plus bas ne tient les ${pctInt(FLOOR_MIN_BUFFER)} exigés.`;
+    }
+    cards += offerCardHTML('floor', floor, 'Offre plancher', note);
+  } else if (floor){
+    cards += offerCardHTML('floor', floor, 'Offre plancher',
+      `Aucune offre Custom ne fait mieux pour ce client en gardant ${pctInt(FLOOR_MIN_BUFFER)} de sécurité MMSC.`);
+  }
+  document.getElementById('offer-grid').innerHTML = cards;
+
+  let al = '';
+  if (capacityOutOfRange()){
+    al += alertHTML('strong','⛔', `Besoin hors catalogue : le maximum est de ${MAX_CARDS} cartes physiques et ${MAX_USERS} utilisateurs. Remonter le cas avant de chiffrer.`);
+  }
+  if (floor && !same) al += bufferAlert(floor);
+  if (reco.segment === 'rental-unavailable'){
+    const av = planAvailability('cpro');
+    const why = av.hardBlock || (av.needsApproval || []).join(', ');
+    al += alertHTML('info','i', `Le profil justifierait un Custom Pro Rental, mais il n'est pas accessible ici : ${why}.`);
+  }
+  document.getElementById('reco-alerts').innerHTML = al;
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDU — SECTION 3
+   ══════════════════════════════════════════════════════════ */
+
+function renderPlanPicker(){
+  const mk = p => {
+    const av = planAvailability(p.key);
+    const rate = p.key === state.plan ? state.rate : defaultRateFor(p.key);
+    const o = computeOffer(p.key, rate, state.rentalFee);
+
+    let tag = '';
+    if (p.key === state.reco.key) tag = '<span class="plan-tag">Recommandé</span>';
+    else if (state.floor && state.floor.key === p.key) tag = '<span class="plan-tag floor">Plancher</span>';
+    else if (av.hardBlock || !av.capacityOK) tag = '<span class="plan-tag ko">Indisponible</span>';
+
+    let note = '';
+    if (av.hardBlock)          note = `<div class="pdesc" style="color:var(--danger)">${av.hardBlock}</div>`;
+    else if (!av.capacityOK)   note = `<div class="pdesc" style="color:var(--danger)">${av.issues.join(' · ')}</div>`;
+    else if (av.needsApproval) note = `<div class="pdesc" style="color:var(--orange)">Validation CM / Head of Indirect</div>`;
+
+    const dis = !av.selectable;
+    return `<button class="plan-card${p.key===state.plan?' sel':''}${p.kind==='custom'?' custom':''}${dis?' disabled':''}"
+      ${dis ? 'disabled aria-disabled="true"' : `onclick="selectPlan('${p.key}')"`}
+      aria-pressed="${p.key===state.plan}">
+      ${tag}
+      <div class="pname">${p.name}</div>
+      <div class="prate">${fmtPct(o.rate)}${p.fee ? ' + ' + p.fee + ' €' : ''}${p.kind==='custom' ? ' · MMSC ' + o.mmsc + ' €' : ''}</div>
+      <div class="pcost">${fmt(o.total)} €<span style="font-size:11px;font-weight:400;color:var(--text3)"> /mois</span></div>
+      <div class="pdesc">${p.desc}</div>
+      ${note}
+    </button>`;
+  };
+  document.getElementById('plan-grid-default').innerHTML = PLANS.filter(p=>p.kind==='default').map(mk).join('');
+  document.getElementById('plan-grid-custom').innerHTML  = PLANS.filter(p=>p.kind==='custom').map(mk).join('');
+}
+
+function selectPlan(key){
+  if (!planAvailability(key).selectable) return;
+  const p = PLAN_BY_KEY[key];
+  state.plan = key;
+  state.rate = defaultRateFor(key);
+
+  document.getElementById('custom-controls').classList.toggle('hidden', p.kind !== 'custom');
+  document.getElementById('rental-controls').classList.toggle('hidden', !p.rental);
+
+  if (p.kind === 'custom') buildRateSelect();
+  if (p.rental) syncRentalSlider();
+  renderAll();
+}
+
+/* Chaque taux est présenté avec son MMSC, sa sécurité MMSC et le coût client. */
+function buildRateSelect(){
+  const sel = document.getElementById('rate-select');
+  sel.innerHTML = '';
+  RATES.forEach(r => {
+    const o = computeOffer(state.plan, r.rate, state.rentalFee);
+    const lvl = bufferLevel(o);
+    const mark = lvl === 'over' ? '⛔' : lvl === 'high' ? '⚠' : lvl === 'warn' ? '!' : '·';
+    const secu = o.buffer < 0 ? 'MMSC déjà dépassé'
+               : o.buffer < FLOOR_MIN_BUFFER ? 'sécurité MMSC ' + pctInt(o.buffer) + ' — sous le plancher'
+               : 'sécurité MMSC ' + pctInt(o.buffer);
+    const opt = document.createElement('option');
+    opt.value = r.rate;
+    opt.textContent = `${mark} ${fmtPct(r.rate)} · MMSC ${r.mmsc} € · ${secu} · client ${fmt(o.total)} €`;
+    if (eq(r.rate, state.rate)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function syncRentalSlider(){
+  const el = document.getElementById('rental-fee');
+  el.min = RENTAL_FEE_MIN; el.max = RENTAL_FEE_MAX; el.value = state.rentalFee;
+  document.getElementById('rental-fee-display').textContent = fmt(state.rentalFee) + ' €';
+}
+
+function updateRate(v){ state.rate = parseFloat(v); buildRateSelect(); renderAll(); }
+function updateRentalFee(v){
+  state.rentalFee = parseFloat(v);
+  document.getElementById('rental-fee-display').textContent = fmt(state.rentalFee) + ' €';
+  if (PLAN_BY_KEY[state.plan].kind === 'custom') buildRateSelect();
+  renderAll();
+}
+function setDuration(d, btn){
+  state.duration = d;
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function currentOffer(){ return computeOffer(state.plan, state.rate, state.rentalFee); }
+
+function renderOffer(){
+  const o = currentOffer();
+  let al = '';
+
+  if (o.avail.needsApproval){
+    al += alertHTML('strong','⛔',
+      `<strong>Location interdite sur ce profil</strong> : ${o.avail.needsApproval.join(', ')}. Pour la proposer malgré tout, il faut la validation du <strong>Country Manager</strong> ou du <strong>Head of Indirect</strong>.`);
+  }
+  al += bufferAlert(o);
+  if (!o.avail.capacityOK){
+    al += alertHTML('danger','⛔', `Ce plan ne couvre pas le besoin : ${o.avail.issues.join(' ; ')}.`);
+  }
+  if (state.floor && o.total > state.floor.total + 0.005){
+    al += alertHTML('info','i', `L'offre plancher reste ${state.floor.plan.name} à ${fmtPct(state.floor.rate)}, pour ${fmt(state.floor.total)} € par mois.`);
+  } else if (state.floor && o.total < state.floor.total - 0.005){
+    al += alertHTML('warning','!', `Cette offre passe sous le plancher calculé (${fmt(state.floor.total)} €). Rien ne l'interdit, mais elle ne tient plus les ${pctInt(FLOOR_MIN_BUFFER)} de sécurité MMSC : le client basculera sur le minimum garanti au premier mois creux.`);
+  }
+  document.getElementById('offer-alerts').innerHTML = al;
+
+  const lvl = bufferLevel(o);
+  const bufCls = (lvl === 'over' || lvl === 'high') ? 'bad' : lvl === 'warn' ? 'warn' : '';
+
+  document.getElementById('offer-metrics').innerHTML =
+    metricHTML('Coût client / mois', fmt(o.total) + ' €', 'Tout compris', 'hl') +
+    metricHTML('Commission acquiring', fmt(o.commission) + ' €', `TPV × ${fmtPct(o.rate)}`) +
+    (o.plan.kind === 'custom'
+      ? metricHTML('Sécurité MMSC', o.buffer < 0 ? 'Dépassée' : pctInt(o.buffer), `Baisse de TPV absorbable · MMSC ${o.mmsc} €`, bufCls)
+      : metricHTML('Abonnement', fmt(o.planFee) + ' €', 'Plan catalogue')) +
+    metricHTML(o.rental ? 'Location Ultra' : 'Terminal lissé', fmt(o.terminalCost) + ' €',
+               o.rental ? `${state.duration} mois · ${fmt(o.terminalCost*state.duration)} € de contrat`
+                        : `${TERMINALS[o.terminal].label} ${o.terminalBuy} € ÷ 12`);
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDU — SECTIONS 4 À 6
+   ══════════════════════════════════════════════════════════ */
+
+function renderBreakdown(){
+  const o = currentOffer(), p = o.plan;
+  let rows = '';
+
+  rows += `<tr><td>Commission d'acquisition<span class="bd-sub">${fmtInt(state.tpv)} € de TPV × ${fmtPct(o.rate)}</span></td><td>${fmt(o.commission)} €</td></tr>`;
+
+  if (p.kind === 'custom'){
+    const sub = o.mmscApplied
+      ? 'Appliqué : la commission est sous le minimum'
+      : `Non appliqué tant que la TPV ne baisse pas de plus de ${pctInt(o.buffer)}`;
+    rows += `<tr class="${o.mmscApplied ? '' : 'bd-muted'}"><td>Minimum mensuel garanti<span class="bd-sub">${sub}</span></td><td>${o.mmsc} €</td></tr>`;
+    if (o.mmscApplied) rows += `<tr><td>Complément MMSC facturé</td><td>+ ${fmt(o.mmsc - o.commission)} €</td></tr>`;
+  }
+
+  rows += `<tr class="${p.fee ? '' : 'bd-muted'}"><td>Abonnement ${p.name}<span class="bd-sub">${p.fee ? 'Prélevé chaque mois' : 'Aucun frais fixe'}</span></td><td>${fmt(p.fee)} €</td></tr>`;
+  rows += `<tr class="${o.transferCost ? '' : 'bd-muted'}"><td>Virements SEPA<span class="bd-sub">${state.transfers} par mois · ${p.transfers} inclus${o.extraTransfers ? ` · ${o.extraTransfers} × 1 €` : ''}</span></td><td>${fmt(o.transferCost)} €</td></tr>`;
+
+  rows += o.rental
+    ? `<tr><td>Location du terminal Ultra<span class="bd-sub">Engagement ${state.duration} mois · ${fmt(o.terminalCost*state.duration)} € sur la durée · aucun achat à l'entrée</span></td><td>${fmt(o.terminalCost)} €</td></tr>`
+    : `<tr><td>Terminal ${TERMINALS[o.terminal].label}<span class="bd-sub">Achat ${o.terminalBuy} € HT, lissé sur 12 mois</span></td><td>${fmt(o.terminalCost)} €</td></tr>`;
+
+  const pctTpv = state.tpv > 0 ? (o.total / state.tpv * 100) : 0;
+  rows += `<tr class="bd-total"><td>Total mensuel<span class="bd-sub" style="font-weight:400">Soit ${fmt(o.total*12)} € sur 12 mois · ${pctTpv.toFixed(2).replace('.',',')} % de la TPV</span></td><td>${fmt(o.total)} €</td></tr>`;
+  document.getElementById('breakdown-body').innerHTML = rows;
+
+  const chips = [
+    { t:`${p.cards} carte${p.cards>1?'s':''} physique${p.cards>1?'s':''}`, ko: state.cards > p.cards },
+    { t:`${p.vcards} cartes virtuelles`, ko:false },
+    { t:`${p.maxUsers} utilisateur${p.maxUsers>1?'s':''} max`, ko: state.users > p.maxUsers },
+    { t: p.transfers ? `${p.transfers} virements SEPA inclus` : "Virements à l'unité", ko:false },
+    { t: p.freeWd ? `${p.freeWd} retraits gratuits, puis 1 %` : 'Retraits 1 % (min 2 €, max 10 €)', ko:false }
+  ];
+  document.getElementById('incl-chips').innerHTML =
+    chips.map(c => `<span class="chip${c.ko?' ko':''}">${c.ko?'⛔ ':''}${c.t}</span>`).join('');
+}
+
+function renderCompTable(){
+  const o = currentOffer(), tpv = state.tpv, myTotal = o.total;
+  const estTrx = tpv / AVG_TRX_SIZE;
+
+  let rows = `<tr class="mypos-row">
+    <td><strong>myPOS — ${o.plan.name}</strong></td>
+    <td>${fmtPct(o.rate)}</td>
+    <td>${fmt(o.planFee + o.transferCost)} €</td>
+    <td>${o.rental ? fmt(o.terminalCost) + ' €' : '—'}</td>
+    <td>${o.rental ? '—' : fmt(o.terminalBuy) + ' €'}</td>
+    <td>${fmt(o.billed)} €</td>
+    <td style="text-align:right;font-weight:700">${fmt(myTotal)} €</td>
+    <td style="text-align:right">—</td></tr>`;
+
+  COMPETITORS.forEach((c,i) => {
+    const frais = tpv * (c.rate/100);
+    const fixedTrx = c.fixedPerTrx * estTrx;
+    const total = frais + fixedTrx + c.monthly + c.terminalMonthly + (c.terminalBuy > 0 ? c.terminalBuy/12 : 0);
+    const diff = total - myTotal;
+    const col = diff > 0 ? 'var(--success)' : 'var(--danger)';
+    const fc = c.fixedPerTrx > 0
+      ? `${fmt(frais)} € <span style="font-size:10px;color:#8a97b0">+${fmt(fixedTrx)} € trx</span>`
+      : `${fmt(frais)} €`;
+    rows += `<tr>
+      <td style="font-weight:500">${c.name}</td>
+      <td><input class="comp-input" type="number" step="0.01" value="${c.rate.toFixed(2)}" onchange="updateComp(${i},'rate',this.value)" aria-label="Taux ${c.name}"></td>
+      <td><input class="comp-input" type="number" step="1" value="${c.monthly}" onchange="updateComp(${i},'monthly',this.value)" aria-label="Abonnement ${c.name}"></td>
+      <td><input class="comp-input" type="number" step="0.5" value="${c.terminalMonthly}" onchange="updateComp(${i},'terminalMonthly',this.value)" aria-label="Terminal mensuel ${c.name}"></td>
+      <td><input class="comp-input" type="number" step="1" min="0" value="${c.terminalBuy.toFixed(0)}" onchange="updateComp(${i},'terminalBuy',this.value)" aria-label="Achat terminal ${c.name}"></td>
+      <td>${fc}</td>
+      <td style="text-align:right;font-weight:600">${fmt(total)} €</td>
+      <td style="text-align:right;font-weight:600;color:${col}">${diff>0?'+':''}${fmt(diff)} €</td>
+    </tr>`;
+  });
+  document.getElementById('comp-body').innerHTML = rows;
+}
+
+function updateComp(i, field, val){
+  COMPETITORS[i][field] = parseFloat(val) || 0;
+  renderCompTable();
+}
+
+function renderPrime(){
+  const o = currentOffer();
+  const ps = document.getElementById('prime-section');
+  if (!o.rental){ ps.classList.add('hidden'); return; }
+  ps.classList.remove('hidden');
+  const cv = o.terminalCost * state.duration;
+  document.getElementById('prime-note').textContent =
+    `${fmt(o.terminalCost)} € × ${state.duration} mois. Moyenne vendue : ${fmt(RENTAL_FEE_AVG)} € sur ${RENTAL_DUR_AVG} mois, soit ${fmt(RENTAL_FEE_AVG*RENTAL_DUR_AVG)} € de contrat.`;
+  document.getElementById('prime-grid').innerHTML = [10,25,50].map(p =>
+    `<div class="prime-item"><div class="ppct">${p} %</div><div class="pval">${fmt(cv*p/100)} €</div><div class="plabel">sur ${fmt(cv)} €</div></div>`
+  ).join('');
+}
+
+/* ══════════════════════════════════════════════════════════
+   ORCHESTRATION
+   ══════════════════════════════════════════════════════════ */
+
+function renderAll(){
+  renderRecommendation();
+  renderPlanPicker();
+  renderOffer();
+  renderBreakdown();
+  renderCompTable();
+  renderPrime();
+}
+
+function renderTerminalNotice(val){
+  const n = document.getElementById('form-notice');
+  if (RENTAL_SOON.includes(val)){
+    n.innerHTML = alertHTML('info','i', `Le ${val} ne sera louable que dans quelques mois. Une offre avec engagement passe aujourd'hui par un Ultra.`);
+  } else if (!RENTAL_ELIGIBLE.includes(val)){
+    n.innerHTML = alertHTML('info','i', `Le ${val} ne se loue pas. Une offre avec engagement passe par un Ultra.`);
+  } else {
+    n.innerHTML = '';
+  }
+}
+
+function onTerminalChange(val){
+  state.terminal = val;
+  COMPETITORS = getCompDefaults(val);
+  renderTerminalNotice(val);
+  if (state.tpv > 0) calculate();
+}
+
+function calculate(){
+  const tpv = parseFloat(document.getElementById('tpv').value);
+  if (!tpv || tpv <= 0){
+    document.getElementById('form-notice').innerHTML =
+      alertHTML('danger','⛔','Saisissez une TPV mensuelle pour lancer le calcul.');
+    document.getElementById('tpv').focus();
+    return;
+  }
+  const transfers = parseInt(document.getElementById('transfers').value, 10);
+  const cards     = parseInt(document.getElementById('cards').value, 10);
+  const users     = parseInt(document.getElementById('users').value, 10);
+  if ([transfers, cards, users].some(v => Number.isNaN(v) || v < 0)){
+    document.getElementById('form-notice').innerHTML =
+      alertHTML('danger','⛔','Virements, cartes et utilisateurs doivent être des nombres valides.');
+    return;
+  }
+
+  state.tpv       = tpv;
+  state.terminal  = document.getElementById('terminal').value;
+  state.season    = document.getElementById('season').value;
+  state.age       = document.getElementById('age').value;
+  state.transfers = transfers;
+  state.cards     = Math.max(1, cards);
+  state.users     = Math.max(1, users);
+
+  COMPETITORS = getCompDefaults(state.terminal);
+  renderTerminalNotice(state.terminal);
+
+  state.reco  = buildRecommendation();
+  state.floor = findFloorOffer();
+
+  document.getElementById('result-section').classList.remove('hidden');
+
+  const p = PLAN_BY_KEY[state.reco.key];
+  state.plan = state.reco.key;
+  state.rate = state.reco.rate;
+  document.getElementById('custom-controls').classList.toggle('hidden', p.kind !== 'custom');
+  document.getElementById('rental-controls').classList.toggle('hidden', !p.rental);
+  if (p.kind === 'custom') buildRateSelect();
+  if (p.rental) syncRentalSlider();
+
+  renderAll();
+}
+</script>
+</body>
+</html>
